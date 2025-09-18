@@ -153,5 +153,6 @@ st.markdown("""
 # -------------------------------
 st.markdown("---")
 st.markdown("**데이터 출처**:")
-st.markdown(f"- 기상청 Open MET Data Portal (기온 통계) :contentReference[oaicite:0]{index=0}")
-st.markdown(f"- Our World in Data: 한국 온실가스 배출량 데이터 :contentReference[oaicite:1]{index=1}")
+st.markdown("- 기상청 Open MET Data Portal (기온 통계) ([data.kma.go.kr](https://data.kma.go.kr/resources/html/en/aowdp.html))")
+st.markdown("- Our World in Data: 한국 온실가스 배출량 데이터 ([ourworldindata.org](https://ourworldindata.org/co2/country/south-korea))")
+
