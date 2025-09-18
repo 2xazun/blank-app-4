@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="기후안정 프로젝트 대시보드 (원인 포함)", layout="wide")
 
 # -------------------------------
-# 실제 / 예시 원인 데이터 로드 또는 생성
+# 데이터 로드 함수들
 # -------------------------------
 
 @st.cache_data
@@ -16,30 +16,33 @@ def load_sector_emissions():
     years = list(range(2000, 2024))
     data = []
     sectors = ["에너지 산업", "수송", "산업 공정", "농업", "폐기물"]
-    # 예시: 에너지 산업이 가장 많고, 수송·산업이 증가 추세
     for sec in sectors:
         base = {"에너지 산업":300, "수송":80, "산업 공정":70, "농업":30, "폐기물":20}[sec]
         for y in years:
-            # 증가 또는 변동 + 노이즈
             emissions = base * (1 + 0.02*(y - 2000)) + np.random.normal(0, base*0.05)
             data.append({"year": y, "sector": sec, "emissions": emissions})
     return pd.DataFrame(data)
 
 @st.cache_data
 def load_biomass_forest_change():
-    # 예: 바이오매스 발전 배출 + 산림 변화 영향
     years = list(range(2015, 2024))
     biomass = [8,9,10,11,12,12.5,13,13.8,14]  # 단위: Mt CO2
-    forest_loss = [50,52,55,60,62,63,65,68,70]  # 천 헥타르 또는 적절 지표
+    forest_loss = [50,52,55,60,62,63,65,68,70]  # 천 헥타르
     return pd.DataFrame({"year": years, "biomass_emission": biomass, "forest_loss_kt": forest_loss})
 
-# -------------------------------
-# 기존 온도 / 폭염 etc 데이터 (예시 더미 또는 기존)
-# -------------------------------
-# 생략: 이전 load_temp / load_extreme / load_sealevel 등
+@st.cache_data
+def load_emission_data():
+    # 예시 데이터: 한국 전체 온실가스 배출량 (단위: kt CO2-eq)
+    years = list(range(2000, 2024))
+    emissions = []
+    for y in years:
+        base = 500000  # 기준값 (2000년: 50만 kt CO2-eq)
+        value = base * (1 + 0.015*(y - 2000)) + np.random.normal(0, base*0.02)
+        emissions.append({"year": y, "emissions": value})
+    return pd.DataFrame(emissions)
 
 # -------------------------------
-# 옵션바 확장
+# 사이드바 옵션
 # -------------------------------
 st.sidebar.header("📊 데이터 옵션")
 
@@ -101,25 +104,23 @@ if "바이오매스 & 산림 변화" in categories:
         )
         st.plotly_chart(fig_forest, use_container_width=True)
 
-# -- (C) 기존 온실가스 배출량 전체 그래프 (예: Our World in Data) --
+# -- (C) 기존 온실가스 배출량 전체 --
 if "온실가스 배출량" in categories:
     st.subheader("🧪 전체 온실가스 배출량 변화")
-    # 예시: load_emission_data() 사용
     df_em = load_emission_data()
     df_em_f = df_em[(df_em["year"] >= year_range[0]) & (df_em["year"] <= year_range[1])]
-    fig_em = px.line(df_em_f, x="year", y="emissions",
-                     markers=show_markers,
-                     labels={"emissions":"전체 배출량 (kt CO₂-eq)", "year":"연도"})
+    fig_em = px.line(
+        df_em_f, x="year", y="emissions",
+        markers=show_markers,
+        labels={"emissions":"전체 배출량 (kt CO₂-eq)", "year":"연도"}
+    )
     if use_log:
         fig_em.update_yaxes(type="log")
     st.plotly_chart(fig_em, use_container_width=True)
 
-# -- 기타 카테고리 (기온, 폭염 등) 이어서 넣을 수 있음 --
-
 # -------------------------------
-# 해결방안 & 실천 과제 등 아래 포함...
+# 해결방안 & 실천 과제
 # -------------------------------
-
 st.subheader("✅ 해결방안과 실천 과제")
 st.markdown("""
 - **에너지 전환 강화**: 화석연료(특히 석탄) 발전소 단계적 폐지 & 재생에너지/핵발전 확대  
@@ -131,7 +132,7 @@ st.markdown("""
 
 st.markdown("---")
 st.markdown("**데이터 출처**:")
-st.markdown("- Greenhouse Gas Emissions in South Korea / Emission-Index :contentReference[oaicite:4]{index=4}")
-st.markdown("- South Korea: CO₂ Country Profile / Our World in Data :contentReference[oaicite:5]{index=5}")
-st.markdown("- 10 Years of Biomass Power in South Korea (바이오매스 발전 배출) :contentReference[oaicite:6]{index=6}")
-st.markdown("- South Korea Deforestation Rates & Statistics / Global Forest Watch :contentReference[oaicite:7]{index=7}")
+st.markdown("- Greenhouse Gas Emissions in South Korea / Emission-Index")
+st.markdown("- South Korea: CO₂ Country Profile / Our World in Data")
+st.markdown("- 10 Years of Biomass Power in South Korea (바이오매스 발전 배출)")
+st.markdown("- South Korea Deforestation Rates & Statistics / Global Forest Watch")
